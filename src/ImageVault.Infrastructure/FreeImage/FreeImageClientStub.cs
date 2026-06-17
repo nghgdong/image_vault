@@ -22,12 +22,13 @@ public sealed class FreeImageClientStub : IFreeImageClient
         var ext = Path.GetExtension(fileName).TrimStart('.');
         if (string.IsNullOrEmpty(ext)) ext = "jpg";
 
+        // Dev placeholder load được thật (picsum) để xem thử UI. Client THẬT (Phase 2) mới dùng freeimage.
         var result = new FreeImageUploadResult(
-            Url: $"https://iili.io/{fakeId}.{ext}",
-            ThumbUrl: $"https://iili.io/{fakeId}.th.{ext}",
-            MediumUrl: $"https://iili.io/{fakeId}.md.{ext}",
-            Width: 1920,
-            Height: 1080,
+            Url: $"https://picsum.photos/seed/{fakeId}/1200/900",
+            ThumbUrl: $"https://picsum.photos/seed/{fakeId}/300/300",
+            MediumUrl: $"https://picsum.photos/seed/{fakeId}/640/480",
+            Width: 1200,
+            Height: 900,
             SizeBytes: content.CanSeek ? content.Length : null,
             MimeType: $"image/{(ext == "jpg" ? "jpeg" : ext)}",
             FreeImageId: fakeId);
