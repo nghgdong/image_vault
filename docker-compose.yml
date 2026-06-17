@@ -1,0 +1,50 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      # Mongo (service "mongo" trong cùng network)
+      MONGO__CONNECTIONSTRING: mongodb://mongo:27017
+      MONGO__DATABASE: ${MONGO__DATABASE:-image_vault}
+      # JWT — BẮT BUỘC đặt JWT__SECRET trong .env
+      JWT__SECRET: ${JWT__SECRET:?JWT__SECRET is required}
+      JWT__ISSUER: ${JWT__ISSUER:-image-vault}
+      JWT__EXPIRYHOURS: ${JWT__EXPIRYHOURS:-8}
+      # freeimage (Phase 1 dùng stub; key thật cho Phase 2)
+      FREEIMAGE__APIKEY: ${FREEIMAGE__APIKEY:-}
+      FREEIMAGE__BASEURL: ${FREEIMAGE__BASEURL:-https://freeimage.host/api/1/upload}
+      # Admin seed — BẮT BUỘC đặt ADMIN__PASSWORD trong .env
+      ADMIN__USERNAME: ${ADMIN__USERNAME:-admin}
+      ADMIN__PASSWORD: ${ADMIN__PASSWORD:?ADMIN__PASSWORD is required}
+      # CORS (origin FE, phân tách bằng dấu phẩy)
+      CORS__ALLOWEDORIGINS: ${CORS__ALLOWEDORIGINS:-}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  mongo-data:

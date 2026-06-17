@@ -1,0 +1,27 @@
+# --- .NET ---
+bin/
+obj/
+*.user
+*.suo
+.vs/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+TestResults/
+*.trx
+
+# --- Secrets / env ---
+.env
+*.env.local
+
+# --- Node / Next.js (Phase 3) ---
+web/node_modules/
+web/.next/
+web/out/
+npm-debug.log*
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+*.DS_Store
+Thumbs.db

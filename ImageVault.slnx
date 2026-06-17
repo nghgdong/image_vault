@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ImageVault.Api/ImageVault.Api.csproj" />
+    <Project Path="src/ImageVault.Application/ImageVault.Application.csproj" />
+    <Project Path="src/ImageVault.Domain/ImageVault.Domain.csproj" />
+    <Project Path="src/ImageVault.Infrastructure/ImageVault.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/ImageVault.UnitTests/ImageVault.UnitTests.csproj" />
+  </Folder>
+</Solution>
