@@ -63,9 +63,9 @@ Quy ước ID: `P{phase}-{số}`.
 ## Phase 2 — Admin + freeimage thật
 
 ### CRUD folder
-- [ ] **P2-1** `POST /api/folders` (tạo, chặn trùng tên trong parent → 409) §4.2
-- [ ] **P2-2** `PUT /api/folders/{id}` (đổi tên + move) §4.2
-- [ ] **P2-3** `DELETE /api/folders/{id}` (soft delete đệ quy, cascade flag, trả số lượng) §4.2
+- [x] **P2-1** `POST /api/folders` (tạo, chặn trùng tên trong parent → 409) §4.2
+- [x] **P2-2** `PUT /api/folders/{id}` (đổi tên + move) §4.2
+- [x] **P2-3** `DELETE /api/folders/{id}` (soft delete đệ quy, cascade flag, trả số lượng) §4.2
 
 ### CRUD image
 - [ ] **P2-4** `DELETE /api/images/{id}` (soft delete metadata, KHÔNG gọi freeimage) §4.2

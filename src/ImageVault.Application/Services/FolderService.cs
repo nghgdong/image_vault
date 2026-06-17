@@ -147,6 +147,11 @@ public sealed class FolderService
         return new DeleteFolderResult(deletedFolderIds.Count, deletedImages);
     }
 
+    /// <summary>Lấy 1 folder (chưa xóa) hoặc 404.</summary>
+    public async Task<Folder> GetFolderAsync(string id, CancellationToken ct = default)
+        => await _folders.GetByIdAsync(id, ct: ct)
+           ?? throw new NotFoundException($"Không tìm thấy thư mục '{id}'.");
+
     // ---------- Public queries (SPEC §4.1) ----------
 
     /// <summary>Root ảo: trả các folder top-level làm subFolders (ảnh luôn thuộc folder thật → images rỗng).</summary>
