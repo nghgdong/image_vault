@@ -86,9 +86,9 @@ Quy ước ID: `P{phase}-{số}`.
 - [x] **P2-15** Rate limit endpoint upload §7
 
 ### Test
-- [ ] **P2-16** Integration test: CRUD folder + move cập nhật con cháu
-- [ ] **P2-17** Integration test: upload (mock freeimage) đơn & batch
-- [ ] **P2-18** ✅ Cổng review 2: upload thật chạy, CRUD đúng, soft delete không xóa freeimage
+- [x] **P2-16** Integration test: CRUD folder + move cập nhật con cháu
+- [x] **P2-17** Integration test: upload (mock freeimage) đơn & batch
+- [x] **P2-18** ✅ Cổng review 2: upload thật chạy, CRUD đúng, soft delete không xóa freeimage
 
 ---
 
@@ -153,7 +153,7 @@ Quy ước ID: `P{phase}-{số}`.
 |---|---|---|
 | 0 | 8 | 8 |
 | 1 | 26 | 26 |
-| 2 | 18 | 0 |
+| 2 | 18 | 18 |
 | 3 | 26 | 0 |
 | 4 | 8 | 0 |
-| **Tổng** | **86** | **34** |
+| **Tổng** | **86** | **52** |

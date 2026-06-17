@@ -98,6 +98,31 @@ internal sealed class InMemoryFolderRepository : IFolderRepository
     }
 }
 
+/// <summary>Fake freeimage: đếm số lần upload, trả dữ liệu giả; ném lỗi nếu tên chứa "boom".</summary>
+internal sealed class FakeFreeImageClient : IFreeImageClient
+{
+    public int UploadCount { get; private set; }
+    public readonly List<string> UploadedFiles = new();
+
+    public Task<FreeImageUploadResult> UploadAsync(Stream content, string fileName, CancellationToken ct = default)
+    {
+        UploadCount++;
+        UploadedFiles.Add(fileName);
+        if (fileName.Contains("boom", StringComparison.OrdinalIgnoreCase))
+            throw new UpstreamException($"freeimage giả lập lỗi cho '{fileName}'.");
+
+        var id = $"fake{UploadCount:D3}";
+        return Task.FromResult(new FreeImageUploadResult(
+            Url: $"https://iili.io/{id}.png",
+            ThumbUrl: $"https://iili.io/{id}.th.png",
+            MediumUrl: $"https://iili.io/{id}.md.png",
+            Width: 800, Height: 600,
+            SizeBytes: content.CanSeek ? content.Length : null,
+            MimeType: "image/png",
+            FreeImageId: id));
+    }
+}
+
 internal sealed class InMemoryImageRepository : IImageRepository
 {
     public readonly List<ImageItem> Store = new();
