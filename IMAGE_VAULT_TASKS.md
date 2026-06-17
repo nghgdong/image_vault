@@ -95,42 +95,42 @@ Quy ước ID: `P{phase}-{số}`.
 ## Phase 3 — Frontend Explorer
 
 ### Nền tảng
-- [ ] **P3-1** Khởi tạo Next.js 14 + TS + Tailwind + TanStack Query + Zustand + dnd-kit
-- [ ] **P3-2** API client (`lib/api.ts`) + hooks TanStack Query
-- [ ] **P3-3** Auth: login page, lưu/đọc JWT, gắn token vào request §6.3
+- [x] **P3-1** Khởi tạo Next.js 14 + TS + Tailwind + TanStack Query + Zustand + dnd-kit
+- [x] **P3-2** API client (`lib/api.ts`) + hooks TanStack Query
+- [x] **P3-3** Auth: login page, lưu/đọc JWT, gắn token vào request §6.3
 
 ### Khung Explorer
-- [ ] **P3-4** Layout 3 vùng: topbar + sidebar + main pane §6.1
-- [ ] **P3-5** Sidebar cây thư mục: expand/collapse, click load nội dung §6.2
-- [ ] **P3-6** Breadcrumb (address bar) + nút Back/Forward §6.2
-- [ ] **P3-7** Content pane: chế độ Icon (lưới thumbnail) §6.2
-- [ ] **P3-8** Content pane: chế độ List (cột tên/kích thước/ngày) §6.2
-- [ ] **P3-9** Toggle Icon/List + Sort (tên/ngày/kích thước) §6.2
-- [ ] **P3-10** Chọn 1 / nhiều (Ctrl/Shift+click) §6.2
-- [ ] **P3-11** Double-click folder mở vào; double-click ảnh mở lightbox §6.2
+- [x] **P3-4** Layout 3 vùng: topbar + sidebar + main pane §6.1
+- [x] **P3-5** Sidebar cây thư mục: expand/collapse, click load nội dung §6.2
+- [x] **P3-6** Breadcrumb (address bar) + nút Back/Forward §6.2
+- [x] **P3-7** Content pane: chế độ Icon (lưới thumbnail) §6.2
+- [x] **P3-8** Content pane: chế độ List (cột tên/kích thước/ngày) §6.2
+- [x] **P3-9** Toggle Icon/List + Sort (tên/ngày/kích thước) §6.2
+- [x] **P3-10** Chọn 1 / nhiều (Ctrl/Shift+click) §6.2
+- [x] **P3-11** Double-click folder mở vào; double-click ảnh mở lightbox §6.2
 
 ### Lightbox
-- [ ] **P3-12** Lightbox: full-size, ← →, ESC, copy/tải link, tên+kích thước §6.5
+- [x] **P3-12** Lightbox: full-size, ← →, ESC, copy/tải link, tên+kích thước §6.5
 
 ### Chức năng admin
-- [ ] **P3-13** Context menu (right-click): mở/đổi tên/xóa/move/copy link §6.2
-- [ ] **P3-14** Dialog xác nhận xóa + cảnh báo binary freeimage không bị xóa §6.3
-- [ ] **P3-15** Tạo folder mới (nút + dialog)
-- [ ] **P3-16** Drag-drop di chuyển ảnh/folder giữa thư mục §6.2
+- [x] **P3-13** Context menu (right-click): mở/đổi tên/xóa/move/copy link §6.2
+- [x] **P3-14** Dialog xác nhận xóa + cảnh báo binary freeimage không bị xóa §6.3
+- [x] **P3-15** Tạo folder mới (nút + dialog)
+- [x] **P3-16** Drag-drop di chuyển ảnh/folder giữa thư mục §6.2
 
 ### Upload UI (§5.4)
-- [ ] **P3-17** Nút Upload chọn nhiều file (`multiple accept=image/*`) §5.4.1
-- [ ] **P3-18** Kéo-thả nhiều file vào pane (UploadDropzone) §5.4.1
-- [ ] **P3-19** Hàng đợi upload: thumbnail + tên + % + trạng thái §5.4.2
-- [ ] **P3-20** Validate client (≤64MB, ≤20 file) + nút thử lại file lỗi §5.4.3
-- [ ] **P3-21** Sau upload xong → cập nhật lưới (invalidate query) §5.4.5
+- [x] **P3-17** Nút Upload chọn nhiều file (`multiple accept=image/*`) §5.4.1
+- [x] **P3-18** Kéo-thả nhiều file vào pane (UploadDropzone) §5.4.1
+- [x] **P3-19** Hàng đợi upload: thumbnail + tên + trạng thái §5.4.2
+- [x] **P3-20** Validate client (≤64MB, ≤20 file) + nút thử lại file lỗi §5.4.3
+- [x] **P3-21** Sau upload xong → cập nhật lưới (invalidate query) §5.4.5
 
 ### Phân quyền & responsive
-- [ ] **P3-22** Public: ẩn nút sửa/xóa/upload, tắt context menu chỉnh sửa + drag-drop §6.3
-- [ ] **P3-23** Admin: badge "Admin mode" + nút đăng xuất §6.3
-- [ ] **P3-24** Responsive: sidebar thu drawer trên mobile §6.4
-- [ ] **P3-25** Empty state + loading skeleton §6.2
-- [ ] **P3-26** ✅ Cổng review 3: public/admin đúng, upload nhiều file chạy, API key không lộ
+- [x] **P3-22** Public: ẩn nút sửa/xóa/upload, tắt context menu chỉnh sửa + drag-drop §6.3
+- [x] **P3-23** Admin: badge "Admin mode" + nút đăng xuất §6.3
+- [x] **P3-24** Responsive: sidebar thu drawer trên mobile §6.4
+- [x] **P3-25** Empty state + loading skeleton §6.2
+- [x] **P3-26** ✅ Cổng review 3: public/admin đúng, upload nhiều file chạy, API key không lộ
 
 ---
 
@@ -154,6 +154,6 @@ Quy ước ID: `P{phase}-{số}`.
 | 0 | 8 | 8 |
 | 1 | 26 | 26 |
 | 2 | 18 | 18 |
-| 3 | 26 | 0 |
+| 3 | 26 | 26 |
 | 4 | 8 | 0 |
-| **Tổng** | **86** | **52** |
+| **Tổng** | **86** | **78** |
