@@ -1,7 +1,9 @@
+using System.Text.RegularExpressions;
 using ImageVault.Application.Abstractions;
 using ImageVault.Application.Common;
 using ImageVault.Domain.Entities;
 using ImageVault.Infrastructure.Persistence;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace ImageVault.Infrastructure.Repositories;
@@ -64,6 +66,13 @@ public sealed class ImageRepository : IImageRepository
             .ToListAsync(ct);
 
         return grouped.ToDictionary(x => x.FolderId, x => x.Count);
+    }
+
+    public async Task<IReadOnlyList<ImageItem>> SearchByNameAsync(string query, int limit, CancellationToken ct = default)
+    {
+        var rx = new BsonRegularExpression(Regex.Escape(query), "i");
+        var filter = F.Regex(i => i.Name, rx) & NotDeleted;
+        return await _col.Find(filter).SortBy(i => i.Name).Limit(limit).ToListAsync(ct);
     }
 
     public Task InsertAsync(ImageItem image, CancellationToken ct = default)

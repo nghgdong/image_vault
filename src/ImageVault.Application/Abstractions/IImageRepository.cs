@@ -13,6 +13,9 @@ public interface IImageRepository
     /// <summary>Đếm số ảnh (chưa xóa) cho từng folderId.</summary>
     Task<IReadOnlyDictionary<string, long>> CountByFolderIdsAsync(IReadOnlyCollection<string> folderIds, CancellationToken ct = default);
 
+    /// <summary>Tìm ảnh (chưa xóa) có tên chứa <paramref name="query"/> (không phân biệt hoa/thường).</summary>
+    Task<IReadOnlyList<ImageItem>> SearchByNameAsync(string query, int limit, CancellationToken ct = default);
+
     Task InsertAsync(ImageItem image, CancellationToken ct = default);
 
     Task ReplaceAsync(ImageItem image, CancellationToken ct = default);

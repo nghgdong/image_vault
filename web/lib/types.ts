@@ -72,6 +72,28 @@ export interface BatchUploadResponse {
   results: BatchUploadResultItem[];
 }
 
+export interface FolderHit {
+  id: string;
+  name: string;
+  parentId: string | null;
+}
+
+export interface ImageHit {
+  id: string;
+  name: string;
+  folderId: string;
+  url: string;
+  thumbUrl: string;
+  width: number | null;
+  height: number | null;
+}
+
+export interface SearchResults {
+  query: string;
+  folders: FolderHit[];
+  images: ImageHit[];
+}
+
 export type SortField = "name" | "date";
 export type SortOrder = "asc" | "desc";
 export type ViewMode = "icon" | "list";

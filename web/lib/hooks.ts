@@ -32,6 +32,16 @@ export function useBreadcrumb(folderId: string | null) {
   });
 }
 
+export function useSearch(query: string) {
+  const q = query.trim();
+  return useQuery({
+    queryKey: ["search", q],
+    queryFn: () => api.search(q),
+    enabled: q.length >= 1,
+    staleTime: 10_000,
+  });
+}
+
 export function useImageDetail(id: string | null) {
   return useQuery({
     queryKey: ["image", id],

@@ -4,6 +4,7 @@ import type {
   FolderChildren,
   FolderCreated,
   ImageDetail,
+  SearchResults,
   SortField,
   SortOrder,
 } from "./types";
@@ -86,6 +87,7 @@ export const api = {
   },
   getBreadcrumb: (id: string) => request<BreadcrumbItem[]>(`/folders/${id}/breadcrumb`),
   getImage: (id: string) => request<ImageDetail>(`/images/${id}`),
+  search: (q: string) => request<SearchResults>(`/search?q=${encodeURIComponent(q)}`),
 
   // --- admin folder ---
   createFolder: (name: string, parentId: string | null) =>

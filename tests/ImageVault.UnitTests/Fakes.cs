@@ -50,6 +50,16 @@ internal sealed class InMemoryFolderRepository : IFolderRepository
         => Task.FromResult(Store.Values.Any(f =>
             !f.IsDeleted && f.ParentId == parentId && f.Name == name && f.Id != excludeId));
 
+    public Task<IReadOnlyList<Folder>> SearchByNameAsync(string query, int limit, CancellationToken ct = default)
+    {
+        var list = Store.Values
+            .Where(f => !f.IsDeleted && f.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(f => f.Name)
+            .Take(limit)
+            .ToList();
+        return Task.FromResult<IReadOnlyList<Folder>>(list);
+    }
+
     public Task<IReadOnlyDictionary<string, long>> CountChildrenByParentIdsAsync(
         IReadOnlyCollection<string> parentIds, CancellationToken ct = default)
     {
@@ -146,6 +156,16 @@ internal sealed class InMemoryImageRepository : IImageRepository
             .GroupBy(i => i.FolderId)
             .ToDictionary(g => g.Key, g => (long)g.Count());
         return Task.FromResult<IReadOnlyDictionary<string, long>>(dict);
+    }
+
+    public Task<IReadOnlyList<ImageItem>> SearchByNameAsync(string query, int limit, CancellationToken ct = default)
+    {
+        var list = Store
+            .Where(i => !i.IsDeleted && i.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(i => i.Name)
+            .Take(limit)
+            .ToList();
+        return Task.FromResult<IReadOnlyList<ImageItem>>(list);
     }
 
     public Task InsertAsync(ImageItem image, CancellationToken ct = default)

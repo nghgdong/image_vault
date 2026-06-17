@@ -12,6 +12,9 @@ public interface IFolderRepository
     /// <summary>Lấy nhiều folder theo danh sách id (cho breadcrumb), bỏ qua đã xóa.</summary>
     Task<IReadOnlyList<Folder>> GetManyByIdsAsync(IEnumerable<string> ids, CancellationToken ct = default);
 
+    /// <summary>Tìm folder (chưa xóa) có tên chứa <paramref name="query"/> (không phân biệt hoa/thường).</summary>
+    Task<IReadOnlyList<Folder>> SearchByNameAsync(string query, int limit, CancellationToken ct = default);
+
     /// <summary>Có folder (chưa xóa) trùng tên trong cùng parent không (loại trừ excludeId).</summary>
     Task<bool> ExistsByNameInParentAsync(string? parentId, string name, string? excludeId, CancellationToken ct = default);
 

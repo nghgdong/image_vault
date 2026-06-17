@@ -12,18 +12,22 @@ import {
   UploadSimple,
 } from "@phosphor-icons/react";
 import { selectCanBack, selectCanForward, selectCurrentFolderId, useUiStore } from "@/store/uiStore";
+import type { ImageDto } from "@/lib/types";
 import { Breadcrumb } from "./Breadcrumb";
+import { SearchBox } from "./SearchBox";
 
 export function Topbar({
   isAdmin,
   onNewFolder,
   onUpload,
   onLogout,
+  onOpenImage,
 }: {
   isAdmin: boolean;
   onNewFolder: () => void;
   onUpload: () => void;
   onLogout: () => void;
+  onOpenImage: (img: ImageDto) => void;
 }) {
   const { back, forward, setDrawerOpen } = useUiStore();
   const canBack = useUiStore(selectCanBack);
@@ -50,6 +54,8 @@ export function Topbar({
       <div className="min-w-0 flex-1 rounded-lg bg-zinc-100 px-2 py-1">
         <Breadcrumb folderId={current} />
       </div>
+
+      <SearchBox onOpenImage={onOpenImage} />
 
       <div className="flex items-center gap-2">
         {isAdmin ? (

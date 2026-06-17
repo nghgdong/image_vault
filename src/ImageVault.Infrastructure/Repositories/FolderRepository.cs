@@ -37,6 +37,13 @@ public sealed class FolderRepository : IFolderRepository
         return await _col.Find(filter).ToListAsync(ct);
     }
 
+    public async Task<IReadOnlyList<Folder>> SearchByNameAsync(string query, int limit, CancellationToken ct = default)
+    {
+        var rx = new BsonRegularExpression(Regex.Escape(query), "i");
+        var filter = F.Regex(f => f.Name, rx) & NotDeleted;
+        return await _col.Find(filter).SortBy(f => f.Name).Limit(limit).ToListAsync(ct);
+    }
+
     public async Task<bool> ExistsByNameInParentAsync(string? parentId, string name, string? excludeId, CancellationToken ct = default)
     {
         var filter = F.Eq(f => f.ParentId, parentId) & F.Eq(f => f.Name, name) & NotDeleted;

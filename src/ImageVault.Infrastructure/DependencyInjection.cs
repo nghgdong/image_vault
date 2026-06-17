@@ -59,6 +59,7 @@ public static class DependencyInjection
         services.AddScoped<FolderService>();
         services.AddScoped<ImageService>();
         services.AddScoped<AuthService>();
+        services.AddScoped<SearchService>();
 
         // Startup tasks: index + seed admin
         services.AddHostedService<MongoIndexInitializer>();
