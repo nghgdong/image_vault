@@ -72,10 +72,10 @@ Quy ước ID: `P{phase}-{số}`.
 - [x] **P2-5** `PUT /api/images/{id}` (đổi tên + move) §4.2
 
 ### freeimage thật
-- [ ] **P2-6** `FreeImageClient` thật: HttpClient + multipart + X-API-Key §5.3
-- [ ] **P2-7** Parse response + mapping sang `images` document §5.2
-- [ ] **P2-8** Polly retry (3 lần, backoff) cho lỗi tạm thời §5.3
-- [ ] **P2-9** Đọc API key từ env, không hardcode §7/§8
+- [x] **P2-6** `FreeImageClient` thật: HttpClient + multipart + X-API-Key §5.3
+- [x] **P2-7** Parse response + mapping sang `images` document §5.2
+- [x] **P2-8** Polly retry (3 lần, backoff) cho lỗi tạm thời §5.3
+- [x] **P2-9** Đọc API key từ env, không hardcode §7/§8 (rỗng → fallback stub)
 
 ### Upload
 - [ ] **P2-10** `POST /api/images/upload` (1 file) §4.2

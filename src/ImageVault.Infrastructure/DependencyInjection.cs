@@ -8,6 +8,8 @@ using ImageVault.Infrastructure.Seed;
 using ImageVault.Infrastructure.System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
+using Polly.Extensions.Http;
 
 namespace ImageVault.Infrastructure;
 
@@ -36,8 +38,22 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
 
-        // FreeImage — STUB ở Phase 1 (client thật ở Phase 2).
-        services.AddSingleton<IFreeImageClient, FreeImageClientStub>();
+        // FreeImage: có API key → client THẬT (HttpClient + Polly retry); rỗng → STUB (dev/no-key).
+        var apiKey = config.GetSection(FreeImageOptions.SectionName)["ApiKey"];
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            services.AddSingleton<IFreeImageClient, FreeImageClientStub>();
+        }
+        else
+        {
+            services.AddHttpClient<IFreeImageClient, FreeImageClient>(http =>
+                {
+                    http.Timeout = TimeSpan.FromSeconds(100);
+                })
+                .AddPolicyHandler(HttpPolicyExtensions
+                    .HandleTransientHttpError()
+                    .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt))));
+        }
 
         // Application services
         services.AddScoped<FolderService>();
