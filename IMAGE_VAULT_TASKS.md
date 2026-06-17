@@ -68,8 +68,8 @@ Quy ước ID: `P{phase}-{số}`.
 - [x] **P2-3** `DELETE /api/folders/{id}` (soft delete đệ quy, cascade flag, trả số lượng) §4.2
 
 ### CRUD image
-- [ ] **P2-4** `DELETE /api/images/{id}` (soft delete metadata, KHÔNG gọi freeimage) §4.2
-- [ ] **P2-5** `PUT /api/images/{id}` (đổi tên + move) §4.2
+- [x] **P2-4** `DELETE /api/images/{id}` (soft delete metadata, KHÔNG gọi freeimage) §4.2
+- [x] **P2-5** `PUT /api/images/{id}` (đổi tên + move) §4.2
 
 ### freeimage thật
 - [ ] **P2-6** `FreeImageClient` thật: HttpClient + multipart + X-API-Key §5.3
