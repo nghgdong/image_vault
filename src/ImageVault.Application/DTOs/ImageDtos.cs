@@ -25,3 +25,12 @@ public sealed record ImageDetailDto(
 
 // --- Request bodies (Phase 2) ---
 public sealed record UpdateImageRequest(string? Name, string? FolderId);
+
+/// <summary>1 file đầu vào để upload (Content phải seekable). Tách khỏi IFormFile để Application không phụ thuộc ASP.NET.</summary>
+public sealed record UploadFile(string FileName, Stream Content, long Length);
+
+/// <summary>Kết quả 1 file trong batch (SPEC §4.2 upload-batch).</summary>
+public sealed record BatchUploadResultItem(int Index, string FileName, string Status, ImageDetailDto? Image, string? Error);
+
+/// <summary>Tổng kết upload nhiều file → trả 207 Multi-Status.</summary>
+public sealed record BatchUploadResponse(int Total, int Succeeded, int Failed, IReadOnlyList<BatchUploadResultItem> Results);

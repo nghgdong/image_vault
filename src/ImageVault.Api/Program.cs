@@ -1,7 +1,10 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using ImageVault.Api.Middleware;
 using ImageVault.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -44,6 +47,28 @@ builder.Services
     });
 
 builder.Services.AddAuthorization();
+
+// --- Rate limit cho upload (SPEC §7): ~30 req/phút/IP ---
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("upload", httpContext =>
+    {
+        var key = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 30,
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        });
+    });
+});
+
+// --- Cho phép multipart lớn (ảnh ≤64MB, batch ≤20 file) ---
+builder.Services.Configure<FormOptions>(o =>
+{
+    o.MultipartBodyLengthLimit = 21L * 64 * 1024 * 1024; // ~1.3GB cho batch tối đa
+});
 
 // --- CORS: chỉ cho phép origin của FE (SPEC §7). Dev: nếu trống → cho phép mọi origin. ---
 const string CorsPolicy = "frontend";
@@ -96,6 +121,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors(CorsPolicy);
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

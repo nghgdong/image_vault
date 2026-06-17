@@ -78,12 +78,12 @@ Quy ước ID: `P{phase}-{số}`.
 - [x] **P2-9** Đọc API key từ env, không hardcode §7/§8 (rỗng → fallback stub)
 
 ### Upload
-- [ ] **P2-10** `POST /api/images/upload` (1 file) §4.2
-- [ ] **P2-11** Validate file: magic bytes + mime ảnh + size ≤ 64MB
-- [ ] **P2-12** `POST /api/images/upload-batch` (nhiều file, TUẦN TỰ) §5.4
-- [ ] **P2-13** 1 file lỗi không chặn file khác; trả 207 Multi-Status §5.4.4
-- [ ] **P2-14** Giới hạn tối đa 20 file/batch
-- [ ] **P2-15** Rate limit endpoint upload §7
+- [x] **P2-10** `POST /api/images/upload` (1 file) §4.2
+- [x] **P2-11** Validate file: magic bytes + mime ảnh + size ≤ 64MB
+- [x] **P2-12** `POST /api/images/upload-batch` (nhiều file, TUẦN TỰ) §5.4
+- [x] **P2-13** 1 file lỗi không chặn file khác; trả 207 Multi-Status §5.4.4
+- [x] **P2-14** Giới hạn tối đa 20 file/batch
+- [x] **P2-15** Rate limit endpoint upload §7
 
 ### Test
 - [ ] **P2-16** Integration test: CRUD folder + move cập nhật con cháu
