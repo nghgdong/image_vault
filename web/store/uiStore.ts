@@ -33,6 +33,11 @@ interface UiState {
   // mobile drawer
   drawerOpen: boolean;
   setDrawerOpen: (open: boolean) => void;
+
+  // tìm kiếm (hiển thị kết quả ở khung nội dung)
+  searchQuery: string;
+  setSearchQuery: (q: string) => void;
+  clearSearch: () => void;
 }
 
 export const useUiStore = create<UiState>((set, get) => ({
@@ -46,18 +51,21 @@ export const useUiStore = create<UiState>((set, get) => ({
   index: 0,
   navigateTo: (id) => {
     const { history, index } = get();
-    if (history[index] === id) return;
+    if (history[index] === id) {
+      set({ searchQuery: "" });
+      return;
+    }
     const next = history.slice(0, index + 1);
     next.push(id);
-    set({ history: next, index: next.length - 1, selection: [] });
+    set({ history: next, index: next.length - 1, selection: [], searchQuery: "" });
   },
   back: () => {
     const { index } = get();
-    if (index > 0) set({ index: index - 1, selection: [] });
+    if (index > 0) set({ index: index - 1, selection: [], searchQuery: "" });
   },
   forward: () => {
     const { history, index } = get();
-    if (index < history.length - 1) set({ index: index + 1, selection: [] });
+    if (index < history.length - 1) set({ index: index + 1, selection: [], searchQuery: "" });
   },
 
   expanded: {},
@@ -70,6 +78,10 @@ export const useUiStore = create<UiState>((set, get) => ({
 
   drawerOpen: false,
   setDrawerOpen: (drawerOpen) => set({ drawerOpen }),
+
+  searchQuery: "",
+  setSearchQuery: (searchQuery) => set({ searchQuery }),
+  clearSearch: () => set({ searchQuery: "" }),
 }));
 
 export const selectCurrentFolderId = (s: UiState) => s.history[s.index];

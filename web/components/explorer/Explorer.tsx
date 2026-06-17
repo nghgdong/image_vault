@@ -189,7 +189,6 @@ export function Explorer() {
           onNewFolder={() => setNewFolderOpen(true)}
           onUpload={triggerPick}
           onLogout={logout}
-          onOpenImage={(img) => setLightbox({ images: [img], index: 0 })}
         />
 
         <div className="flex min-h-0 flex-1">

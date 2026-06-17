@@ -8,6 +8,7 @@ import type { ImageDto } from "@/lib/types";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Toolbar } from "./Toolbar";
 import { FolderCell, ImageCell } from "./items";
+import { SearchResults } from "./SearchResults";
 
 export type CtxTarget =
   | { type: "folder"; id: string; name: string }
@@ -27,7 +28,7 @@ export function ContentPane({
   onContextMenu: (e: React.MouseEvent, target: CtxTarget) => void;
   onFilesDropped: (files: File[]) => void;
 }) {
-  const { sort, order, viewMode, selection, setSelection, clearSelection } = useUiStore();
+  const { sort, order, viewMode, selection, setSelection, clearSelection, searchQuery } = useUiStore();
   const { data, isLoading, isError, error } = useContents(folderId, sort, order);
   const [dragOver, setDragOver] = useState(false);
 
@@ -69,6 +70,11 @@ export function ContentPane({
   const images = data?.images ?? [];
   const subFolders = data?.subFolders ?? [];
   const empty = !isLoading && subFolders.length === 0 && images.length === 0;
+
+  // Có truy vấn tìm kiếm → hiển thị kết quả ở khung nội dung (thay cho nội dung thư mục).
+  if (searchQuery.trim().length >= 1) {
+    return <SearchResults query={searchQuery} onOpenImage={(img) => onActivateImage([img], 0)} />;
+  }
 
   return (
     <div className="flex h-full flex-col">
