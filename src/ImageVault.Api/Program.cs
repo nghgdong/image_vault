@@ -4,11 +4,13 @@ using ImageVault.Api.Middleware;
 using ImageVault.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+var isDevelopment = builder.Environment.IsDevelopment();
 
 // --- Controllers ---
 builder.Services.AddControllers();
@@ -25,6 +27,19 @@ var jwtSection = builder.Configuration.GetSection("Jwt");
 var jwtSecret = jwtSection["Secret"];
 var jwtIssuer = jwtSection["Issuer"] ?? "image-vault";
 var jwtAudience = jwtSection["Audience"] ?? jwtIssuer;
+var jwtSigningSecret = jwtSecret;
+
+if (string.IsNullOrWhiteSpace(jwtSigningSecret))
+{
+    if (!isDevelopment)
+        throw new InvalidOperationException("Jwt:Secret is required outside Development.");
+
+    jwtSigningSecret = "dev-only-insecure-fallback-key-change-me!!";
+}
+else if (!isDevelopment && jwtSigningSecret.Length < 32)
+{
+    throw new InvalidOperationException("Jwt:Secret must be at least 32 characters outside Development.");
+}
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -38,10 +53,7 @@ builder.Services
             ValidAudience = jwtAudience,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(string.IsNullOrWhiteSpace(jwtSecret)
-                    ? "dev-only-insecure-fallback-key-change-me!!" // tránh crash khi thiếu cấu hình; PHẢI override qua env ở prod
-                    : jwtSecret)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningSecret)),
             ClockSkew = TimeSpan.FromMinutes(1),
         };
     });
@@ -75,14 +87,25 @@ const string CorsPolicy = "frontend";
 var allowedOrigins = builder.Configuration["Cors:AllowedOrigins"]?
     .Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     ?? Array.Empty<string>();
+if (allowedOrigins.Length == 0)
+{
+    if (!isDevelopment)
+        throw new InvalidOperationException("Cors:AllowedOrigins is required outside Development.");
+
+    allowedOrigins = new[] { "http://localhost:3000" };
+}
 
 builder.Services.AddCors(o => o.AddPolicy(CorsPolicy, p =>
 {
-    if (allowedOrigins.Length > 0)
-        p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
-    else
-        p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod(); // chỉ dùng khi dev (chưa cấu hình)
+    p.WithOrigins(allowedOrigins).AllowAnyHeader().AllowAnyMethod();
 }));
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // --- Swagger + JWT bearer ---
 builder.Services.AddEndpointsApiExplorer();
@@ -112,9 +135,30 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
 
-if (app.Environment.IsDevelopment())
+if (!isDevelopment)
+{
+    app.UseHsts();
+}
+
+app.Use(async (context, next) =>
+{
+    context.Response.OnStarting(() =>
+    {
+        var headers = context.Response.Headers;
+        headers.TryAdd("X-Content-Type-Options", "nosniff");
+        headers.TryAdd("X-Frame-Options", "DENY");
+        headers.TryAdd("Referrer-Policy", "no-referrer");
+        headers.TryAdd("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+        return Task.CompletedTask;
+    });
+
+    await next();
+});
+
+if (isDevelopment)
 {
     app.UseSwagger();
     app.UseSwaggerUI();

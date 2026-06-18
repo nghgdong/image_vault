@@ -136,11 +136,11 @@ Quy ước ID: `P{phase}-{số}`.
 
 ## Phase 4 — Hoàn thiện & deploy
 
-- [ ] **P4-1** `docker-compose.yml` đủ 3 service (api+web+mongo) + healthcheck + volume §9
-- [ ] **P4-2** `.env.example` đầy đủ biến §8
-- [ ] **P4-3** CORS chỉ cho origin FE §7
+- [x] **P4-1** `docker-compose.yml` đủ 3 service (api+web+mongo) + healthcheck + volume §9
+- [x] **P4-2** `.env.example` đầy đủ biến §8
+- [x] **P4-3** CORS chỉ cho origin FE §7
 - [ ] **P4-4** Security headers + rà soát validate/rate limit §7
-- [ ] **P4-5** README: hướng dẫn chạy local + deploy Dokploy/Traefik
+- [x] **P4-5** README: hướng dẫn chạy local + deploy Dokploy/Traefik
 - [ ] **P4-6** Chạy checklist Acceptance Criteria §11 (10 mục)
 - [ ] **P4-7** Smoke test trên môi trường deploy
 - [ ] **P4-8** ✅ Cổng review 4: full stack chạy, §11 đạt, deploy OK
@@ -155,5 +155,5 @@ Quy ước ID: `P{phase}-{số}`.
 | 1 | 26 | 26 |
 | 2 | 18 | 18 |
 | 3 | 26 | 26 |
-| 4 | 8 | 0 |
-| **Tổng** | **86** | **78** |
+| 4 | 8 | 4 |
+| **Tổng** | **86** | **82** |

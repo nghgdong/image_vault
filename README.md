@@ -1,80 +1,110 @@
 # Image Vault
 
 Kho ảnh có cây thư mục lồng nhau, giao diện kiểu Windows File Explorer.
-Public duyệt/xem ảnh (read-only); Admin (JWT) quản lý thư mục & ảnh.
-Binary ảnh lưu trên **freeimage.host**, metadata trên **MongoDB**.
+Public duyệt/xem ảnh read-only; Admin dùng JWT để quản lý thư mục, ảnh và upload.
+Binary ảnh lưu trên **freeimage.host**, metadata lưu trong **MongoDB**.
 
-> Tài liệu: [SPEC](IMAGE_VAULT_SPEC.md) · [PLAN](IMAGE_VAULT_PLAN.md) · [TASKS](IMAGE_VAULT_TASKS.md) · [Quy tắc agent](CLAUDE.md)
+Tài liệu: [SPEC](IMAGE_VAULT_SPEC.md) · [PLAN](IMAGE_VAULT_PLAN.md) · [TASKS](IMAGE_VAULT_TASKS.md) · [Quy tắc agent](CLAUDE.md)
 
 ## Trạng thái
 
-- ✅ **Phase 1 — Backend core**: Clean Architecture, MongoDB, JWT auth, materialized
-  path (tạo/move/soft-delete đệ quy), endpoint public + login, freeimage **stub**.
-- ⏳ Phase 2: endpoint admin + upload freeimage thật. Phase 3: frontend. Phase 4: deploy.
+- Backend: .NET 8 Web API, MongoDB, JWT auth, ProblemDetails, rate limit upload, magic-byte validation, FreeImage client/stub.
+- Frontend: Next.js 14, TypeScript, Tailwind, TanStack Query, Zustand, explorer UI public/admin.
+- Deploy: Docker Compose gồm `api`, `web`, `mongo`; có healthcheck và volume Mongo.
 
-## Kiến trúc
+## Chạy local để phát triển
 
-```
-src/
-  ImageVault.Domain          # entities (Folder, ImageItem, User) — không phụ thuộc gì
-  ImageVault.Application      # interfaces, DTOs, services (logic path)
-  ImageVault.Infrastructure  # Mongo repos, JWT, BCrypt, FreeImage stub, seed, index
-  ImageVault.Api             # controllers, DI, ProblemDetails, Program.cs
-tests/
-  ImageVault.UnitTests       # test materialized path
-```
-
-> Lưu ý: dự án **target .NET 8** (`net8.0`). Solution dùng định dạng `ImageVault.slnx`.
-
-## Endpoint Phase 1
-
-| Method | Path | Quyền |
-|---|---|---|
-| GET | `/api/health` | public |
-| GET | `/api/folders/root` | public |
-| GET | `/api/folders/{id}/children?page=&pageSize=&sort=name\|date&order=asc\|desc` | public |
-| GET | `/api/folders/{id}/breadcrumb` | public |
-| GET | `/api/images/{id}` | public |
-| POST | `/api/auth/login` | public (trả JWT) |
-
-Lỗi trả `ProblemDetails` (RFC 7807): 400/401/403/404/409/502.
-
-## Chạy local (dev)
-
-Cần .NET SDK 8+ và một MongoDB (hoặc chạy mongo bằng Docker).
+Cần .NET SDK 8+, Node.js 20+, npm và Docker nếu muốn chạy Mongo bằng compose.
 
 ```bash
-# 1) Mongo bằng Docker (chỉ service mongo)
+# MongoDB local bằng Docker
 docker compose up -d mongo
 
-# 2) API (dev — dùng appsettings.Development.json có secret DEV)
+# API dev
 dotnet run --project src/ImageVault.Api
+
+# Web dev
+cd web
+npm ci
+npm run dev
 ```
 
-Mặc định dev: admin `admin` / `dev-admin-123` (đổi trong `appsettings.Development.json`).
-Swagger UI: `http://localhost:5xxx/swagger` (chỉ bật ở môi trường Development).
+Mặc định dev:
+
+- Web: `http://localhost:3000`
+- API: `http://localhost:8080` hoặc port Kestrel hiện trong log khi chạy `dotnet run`
+- Swagger chỉ bật ở `Development`
+- Admin dev: `admin` / `dev-admin-123`
+
+## Chạy full stack bằng Docker Compose
 
 ```bash
-# Test
-dotnet test
-```
-
-## Chạy full bằng Docker
-
-```bash
-cp .env.example .env      # rồi điền JWT__SECRET, ADMIN__PASSWORD...
+cp .env.example .env
+# Sửa .env: JWT__SECRET, ADMIN__PASSWORD, FREEIMAGE__APIKEY nếu upload thật.
 docker compose up --build
-# Healthcheck:
-curl http://localhost:8080/api/health
 ```
 
-## Cấu hình (biến môi trường)
+URL mặc định:
 
-Xem [.env.example](.env.example). Tất cả secret đọc từ env (`Mongo__*`, `Jwt__*`,
-`FreeImage__*`, `Admin__*`, `Cors__*`) — **không hardcode** (SPEC §8).
+- Web: `http://localhost:3000`
+- API health: `http://localhost:8080/api/health`
 
-## Ràng buộc quan trọng (SPEC §1.1)
+Các biến quan trọng trong `.env`:
 
-- freeimage Guest API **không xóa được binary** → mọi "xóa" là **soft delete** metadata
-  (`isDeleted=true`). Ảnh trên freeimage là **public vĩnh viễn**.
-- Upload **luôn qua backend**; API key freeimage chỉ ở server.
+| Biến | Ý nghĩa |
+|---|---|
+| `MONGO__CONNECTIONSTRING` | Connection string MongoDB từ API |
+| `MONGO__DATABASE` | Tên database metadata |
+| `FREEIMAGE__APIKEY` | API key freeimage.host; rỗng thì backend dùng stub |
+| `FREEIMAGE__BASEURL` | Endpoint upload freeimage.host |
+| `JWT__SECRET` | Secret HS256, tối thiểu 32 ký tự trong Production |
+| `JWT__ISSUER` | JWT issuer |
+| `JWT__EXPIRYHOURS` | Thời hạn token admin |
+| `ADMIN__USERNAME` | Username admin seed lần đầu |
+| `ADMIN__PASSWORD` | Password admin seed lần đầu |
+| `CORS__ALLOWEDORIGINS` | Origin frontend được phép gọi API |
+| `NEXT_PUBLIC_API_BASE_URL` | URL public của API, kèm `/api`; được bake khi build web |
+| `API_PORT` | Port host map vào API container |
+| `WEB_PORT` | Port host map vào web container |
+
+Lưu ý: `NEXT_PUBLIC_API_BASE_URL` là biến public của Next.js và được nhúng vào bundle lúc build image web. Khi đổi domain API production, build lại image web với biến này.
+
+## Deploy Dokploy / Traefik
+
+1. Tạo project/app Docker Compose trong Dokploy và trỏ tới repo này.
+2. Khai báo các biến trong `.env.example` dưới dạng secret/env của Dokploy.
+3. Đặt domain cho web trỏ tới service `web`, port `3000`.
+4. Đặt domain cho API trỏ tới service `api`, port `8080`.
+5. Đặt `NEXT_PUBLIC_API_BASE_URL=https://<api-domain>/api` trước khi build web.
+6. Đặt `CORS__ALLOWEDORIGINS=https://<web-domain>` để API chỉ cho frontend production gọi.
+7. Bật HTTPS/TLS ở Traefik/Dokploy cho cả web và API.
+8. Deploy, chờ healthcheck `mongo`, `api`, `web` healthy.
+9. Smoke test:
+   - Mở web domain public và duyệt thư mục.
+   - Login admin bằng tài khoản seed.
+   - Tạo thư mục, upload ảnh thử, đổi tên/di chuyển/xóa metadata.
+   - Kiểm tra browser network không có request trực tiếp tới freeimage.host từ frontend và không lộ API key.
+
+## Kiểm tra chất lượng
+
+```bash
+dotnet test
+
+cd web
+npm ci
+npm run lint
+npm run build
+```
+
+Docker checks:
+
+```bash
+docker compose config
+docker compose up --build
+```
+
+## Ràng buộc quan trọng
+
+- freeimage Guest API không có delete endpoint. Xóa ảnh/thư mục trong app chỉ soft-delete metadata trong MongoDB; binary trên freeimage.host vẫn tồn tại nếu ai giữ link.
+- Upload luôn đi qua backend để giữ `FREEIMAGE__APIKEY` ở server.
+- Production yêu cầu `JWT__SECRET` hợp lệ và `CORS__ALLOWEDORIGINS` rõ ràng; API không fallback `AllowAnyOrigin` ngoài Development.
