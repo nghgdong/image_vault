@@ -10,7 +10,8 @@ import {
 } from "@dnd-kit/core";
 import { ArrowsOutSimple, Copy, FolderPlus, PencilSimple, Trash, UploadSimple } from "@phosphor-icons/react";
 import { useMoveFolder, useMoveImage, useUploadBatch } from "@/lib/hooks";
-import { ImageFileMax } from "@/lib/constants";
+import { ImageFileMax, MaxBatchFiles } from "@/lib/constants";
+import { ApiError } from "@/lib/api";
 import type { ImageDto } from "@/lib/types";
 import { useAuthStore } from "@/store/authStore";
 import { selectCurrentFolderId, useUiStore } from "@/store/uiStore";
@@ -87,48 +88,81 @@ export function Explorer() {
       showToast("Hãy mở một thư mục để tải ảnh lên.");
       return;
     }
+    // Validate type + size. KHÔNG giới hạn 20 ở đây — FE tự chia lô (xem runUpload).
+    // Không tạo preview ở bước này: 1000 thumbnail decode cùng lúc làm treo trình duyệt.
+    // Preview được tạo lazy theo từng lô đang chạy rồi revoke khi xong.
     const newItems: QueueItem[] = [];
-    let validCount = 0;
+    const valid: QueueItem[] = [];
     for (const f of files) {
       const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      const preview = f.type.startsWith("image/") ? URL.createObjectURL(f) : undefined;
       if (!f.type.startsWith("image/")) {
-        newItems.push({ id, name: f.name, previewUrl: preview, status: "error", error: "Không phải ảnh" });
+        newItems.push({ id, name: f.name, status: "error", error: "Không phải ảnh" });
       } else if (f.size > ImageFileMax) {
-        newItems.push({ id, name: f.name, previewUrl: preview, status: "error", error: "Vượt quá 64MB" });
-      } else if (validCount >= 20) {
-        newItems.push({ id, name: f.name, previewUrl: preview, status: "error", error: "Vượt 20 file/lần" });
+        newItems.push({ id, name: f.name, status: "error", error: "Vượt quá 64MB" });
       } else {
-        validCount++;
         fileMap.current.set(id, f);
-        newItems.push({ id, name: f.name, previewUrl: preview, status: "pending" });
+        const item: QueueItem = { id, name: f.name, status: "pending" };
+        newItems.push(item);
+        valid.push(item);
       }
     }
     setQueue((q) => [...q, ...newItems]);
-    void runUpload(newItems.filter((i) => i.status === "pending"), current);
+    void runUpload(valid, current);
   }
 
+  /** Gửi 1 lô; gặp 429 (rate limit ~30 req/phút) thì chờ rồi thử lại lô đó. */
+  async function uploadWithRetry(folderId: string, files: File[]) {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await upload.mutateAsync({ folderId, files });
+      } catch (err) {
+        const tooMany = err instanceof ApiError && err.status === 429;
+        if (!tooMany || attempt >= 15) throw err;
+        await new Promise((r) => setTimeout(r, 5000)); // chờ cửa sổ rate-limit reset
+      }
+    }
+  }
+
+  /** Tải lên theo lô tuần tự (mỗi lô ≤ MaxBatchFiles) để tôn trọng giới hạn backend. */
   async function runUpload(items: QueueItem[], folderId: string) {
     if (items.length === 0) return;
-    const ids = new Set(items.map((i) => i.id));
-    setQueue((q) => q.map((i) => (ids.has(i.id) ? { ...i, status: "uploading" } : i)));
+    for (let i = 0; i < items.length; i += MaxBatchFiles) {
+      await uploadChunk(items.slice(i, i + MaxBatchFiles), folderId);
+    }
+  }
 
-    const files = items.map((i) => fileMap.current.get(i.id)!).filter(Boolean);
+  async function uploadChunk(chunk: QueueItem[], folderId: string) {
+    if (chunk.length === 0) return;
+    // Tạo preview chỉ cho lô đang chạy.
+    const previews = new Map<string, string>();
+    for (const it of chunk) {
+      const f = fileMap.current.get(it.id);
+      if (f) previews.set(it.id, URL.createObjectURL(f));
+    }
+    setQueue((q) =>
+      q.map((i) => (previews.has(i.id) ? { ...i, status: "uploading", previewUrl: previews.get(i.id) } : i)),
+    );
+
+    const files = chunk.map((i) => fileMap.current.get(i.id)!).filter(Boolean);
     try {
-      const res = await upload.mutateAsync({ folderId, files });
+      const res = await uploadWithRetry(folderId, files);
       setQueue((q) =>
         q.map((i) => {
-          const idx = items.findIndex((it) => it.id === i.id);
+          const idx = chunk.findIndex((it) => it.id === i.id);
           if (idx < 0) return i;
           const r = res.results[idx];
           return r && r.status === "success"
-            ? { ...i, status: "success" }
-            : { ...i, status: "error", error: r?.error ?? "Lỗi không rõ" };
+            ? { ...i, status: "success", previewUrl: undefined }
+            : { ...i, status: "error", previewUrl: undefined, error: r?.error ?? "Lỗi không rõ" };
         }),
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Tải lên thất bại.";
-      setQueue((q) => q.map((i) => (ids.has(i.id) ? { ...i, status: "error", error: msg } : i)));
+      const ids = new Set(chunk.map((i) => i.id));
+      setQueue((q) => q.map((i) => (ids.has(i.id) ? { ...i, status: "error", previewUrl: undefined, error: msg } : i)));
+    } finally {
+      // Giải phóng blob URL của lô để không giữ thumbnail decode trong bộ nhớ.
+      for (const url of Array.from(previews.values())) URL.revokeObjectURL(url);
     }
   }
 
@@ -136,7 +170,7 @@ export function Explorer() {
     const item = queue.find((i) => i.id === id);
     if (!item || !current || !fileMap.current.get(id)) return;
     setQueue((q) => q.map((i) => (i.id === id ? { ...i, status: "pending" } : i)));
-    void runUpload([{ ...item, status: "pending" }], current);
+    void uploadChunk([{ ...item, status: "pending" }], current);
   }
 
   // ---------- context menu ----------
