@@ -48,8 +48,8 @@ docker compose up --build
 
 URL mặc định:
 
-- Web: `http://localhost:3000`
-- API health: `http://localhost:8080/api/health`
+- Trên Dokploy/Traefik: truy cập qua domain đã gắn cho service `web` và `api`.
+- Compose production chỉ `expose` internal ports (`web:3000`, `api:8080`), không publish host port để tránh conflict với app khác trên cùng server.
 
 Các biến quan trọng trong `.env`:
 
@@ -66,8 +66,6 @@ Các biến quan trọng trong `.env`:
 | `ADMIN__PASSWORD` | Password admin seed lần đầu |
 | `CORS__ALLOWEDORIGINS` | Origin frontend được phép gọi API |
 | `NEXT_PUBLIC_API_BASE_URL` | URL public của API, kèm `/api`; được bake khi build web |
-| `API_PORT` | Port host map vào API container |
-| `WEB_PORT` | Port host map vào web container |
 
 Lưu ý: `NEXT_PUBLIC_API_BASE_URL` là biến public của Next.js và được nhúng vào bundle lúc build image web. Khi đổi domain API production, build lại image web với biến này.
 
