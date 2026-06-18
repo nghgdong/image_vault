@@ -95,7 +95,7 @@ Quy ước ID: `P{phase}-{số}`.
 ## Phase 3 — Frontend Explorer
 
 ### Nền tảng
-- [x] **P3-1** Khởi tạo Next.js 14 + TS + Tailwind + TanStack Query + Zustand + dnd-kit
+- [x] **P3-1** Khởi tạo Next.js 16 + TS + Tailwind + TanStack Query + Zustand + dnd-kit
 - [x] **P3-2** API client (`lib/api.ts`) + hooks TanStack Query
 - [x] **P3-3** Auth: login page, lưu/đọc JWT, gắn token vào request §6.3
 
@@ -139,7 +139,7 @@ Quy ước ID: `P{phase}-{số}`.
 - [x] **P4-1** `docker-compose.yml` đủ 3 service (api+web+mongo) + healthcheck + volume §9
 - [x] **P4-2** `.env.example` đầy đủ biến §8
 - [x] **P4-3** CORS chỉ cho origin FE §7
-- [ ] **P4-4** Security headers + rà soát validate/rate limit §7
+- [x] **P4-4** Security headers + rà soát validate/rate limit §7
 - [x] **P4-5** README: hướng dẫn chạy local + deploy Dokploy/Traefik
 - [ ] **P4-6** Chạy checklist Acceptance Criteria §11 (10 mục)
 - [ ] **P4-7** Smoke test trên môi trường deploy
@@ -155,5 +155,5 @@ Quy ước ID: `P{phase}-{số}`.
 | 1 | 26 | 26 |
 | 2 | 18 | 18 |
 | 3 | 26 | 26 |
-| 4 | 8 | 4 |
-| **Tổng** | **86** | **82** |
+| 4 | 8 | 5 |
+| **Tổng** | **86** | **83** |

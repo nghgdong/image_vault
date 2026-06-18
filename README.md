@@ -9,8 +9,10 @@ Tài liệu: [SPEC](IMAGE_VAULT_SPEC.md) · [PLAN](IMAGE_VAULT_PLAN.md) · [TASK
 ## Trạng thái
 
 - Backend: .NET 8 Web API, MongoDB, JWT auth, ProblemDetails, rate limit upload, magic-byte validation, FreeImage client/stub.
-- Frontend: Next.js 14, TypeScript, Tailwind, TanStack Query, Zustand, explorer UI public/admin.
+- Frontend: Next.js 16, TypeScript, Tailwind, TanStack Query, Zustand, explorer UI public/admin.
 - Deploy: Docker Compose gồm `api`, `web`, `mongo`; có healthcheck và volume Mongo.
+
+MongoDB trong compose đang pin `mongo:4.4.29` để tương thích các VPS/Dokploy host không hỗ trợ AVX; MongoDB 5+ có thể crash với exit code `132` trên CPU cũ.
 
 ## Chạy local để phát triển
 
