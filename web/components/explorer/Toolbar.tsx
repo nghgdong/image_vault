@@ -1,10 +1,18 @@
 "use client";
 
-import { GridFour, ListBullets, SortAscending, SortDescending } from "@phosphor-icons/react";
+import { GridFour, ListBullets, SortAscending, SortDescending, Trash } from "@phosphor-icons/react";
 import { useUiStore } from "@/store/uiStore";
 import type { SortField } from "@/lib/types";
 
-export function Toolbar({ selectedCount }: { selectedCount: number }) {
+export function Toolbar({
+  selectedCount,
+  isAdmin,
+  onDeleteSelected,
+}: {
+  selectedCount: number;
+  isAdmin: boolean;
+  onDeleteSelected: () => void;
+}) {
   const { viewMode, setViewMode, sort, order, setSort } = useUiStore();
 
   return (
@@ -35,6 +43,15 @@ export function Toolbar({ selectedCount }: { selectedCount: number }) {
       <div className="flex items-center gap-2">
         {selectedCount > 0 && (
           <span className="text-sm text-zinc-500">{selectedCount} đã chọn</span>
+        )}
+        {isAdmin && selectedCount > 0 && (
+          <button
+            onClick={onDeleteSelected}
+            title="Xóa mục đã chọn"
+            className="flex items-center gap-1.5 rounded-lg border border-rose-200 px-2.5 py-1.5 text-sm font-medium text-rose-600 transition-colors hover:bg-rose-50"
+          >
+            <Trash size={16} /> Xóa
+          </button>
         )}
         <select
           value={sort}

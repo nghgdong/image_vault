@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Toolbar } from "./Toolbar";
 import { FolderCell, ImageCell } from "./items";
 import { SearchResults } from "./SearchResults";
+import type { DeleteItem } from "./dialogs";
 
 export type CtxTarget =
   | { type: "folder"; id: string; name: string }
@@ -21,12 +22,14 @@ export function ContentPane({
   onActivateImage,
   onContextMenu,
   onFilesDropped,
+  onDeleteSelection,
 }: {
   folderId: string | null;
   isAdmin: boolean;
   onActivateImage: (images: ImageDto[], index: number) => void;
   onContextMenu: (e: React.MouseEvent, target: CtxTarget) => void;
   onFilesDropped: (files: File[]) => void;
+  onDeleteSelection: (items: DeleteItem[]) => void;
 }) {
   const { sort, order, viewMode, selection, setSelection, clearSelection, searchQuery } = useUiStore();
   const { data, isLoading, isError, error } = useContents(folderId, sort, order);
@@ -71,6 +74,21 @@ export function ContentPane({
   const subFolders = data?.subFolders ?? [];
   const empty = !isLoading && subFolders.length === 0 && images.length === 0;
 
+  function selectedDeleteItems(): DeleteItem[] {
+    const items: DeleteItem[] = [];
+    for (const item of selection) {
+      if (item.type === "folder") {
+        const folder = subFolders.find((x) => x.id === item.id);
+        if (folder) items.push({ type: "folder", id: folder.id, name: folder.name });
+        continue;
+      }
+
+      const image = images.find((x) => x.id === item.id);
+      if (image) items.push({ type: "image", id: image.id, name: image.name });
+    }
+    return items;
+  }
+
   // Có truy vấn tìm kiếm → hiển thị kết quả ở khung nội dung (thay cho nội dung thư mục).
   if (searchQuery.trim().length >= 1) {
     return <SearchResults query={searchQuery} onOpenImage={(img) => onActivateImage([img], 0)} />;
@@ -78,7 +96,14 @@ export function ContentPane({
 
   return (
     <div className="flex h-full flex-col">
-      <Toolbar selectedCount={selection.length} />
+      <Toolbar
+        selectedCount={selection.length}
+        isAdmin={isAdmin}
+        onDeleteSelected={() => {
+          const items = selectedDeleteItems();
+          if (items.length > 0) onDeleteSelection(items);
+        }}
+      />
 
       <div
         className="relative flex-1 overflow-y-auto p-4 scroll-thin"

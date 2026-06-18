@@ -6,6 +6,10 @@ import { Dialog } from "@/components/ui/Dialog";
 import { ApiError } from "@/lib/api";
 import { useCreateFolder, useDeleteFolder, useDeleteImage, useRenameFolder, useRenameImage } from "@/lib/hooks";
 
+export type RenameTarget = { type: "folder" | "image"; id: string; name: string } | null;
+export type DeleteItem = { type: "folder" | "image"; id: string; name: string };
+export type DeleteTarget = { items: DeleteItem[] } | null;
+
 function errMsg(e: unknown) {
   return e instanceof ApiError ? e.message : "Đã xảy ra lỗi.";
 }
@@ -70,7 +74,7 @@ export function RenameDialog({
 }: {
   open: boolean;
   onClose: () => void;
-  target: { type: "folder" | "image"; id: string; name: string } | null;
+  target: RenameTarget;
 }) {
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -118,38 +122,71 @@ export function DeleteConfirmDialog({
   open,
   onClose,
   target,
+  onDeleted,
 }: {
   open: boolean;
   onClose: () => void;
-  target: { type: "folder" | "image"; id: string; name: string } | null;
+  target: DeleteTarget;
+  onDeleted?: () => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const [bulkPending, setBulkPending] = useState(false);
   const delFolder = useDeleteFolder();
   const delImage = useDeleteImage();
-  const pending = delFolder.isPending || delImage.isPending;
+  const pending = bulkPending || delFolder.isPending || delImage.isPending;
+  const items = target?.items ?? [];
+  const folderCount = items.filter((x) => x.type === "folder").length;
+  const imageCount = items.filter((x) => x.type === "image").length;
+  const multi = items.length > 1;
 
   useEffect(() => {
     if (open) setError(null);
   }, [open]);
 
   async function confirm() {
-    if (!target) return;
+    if (!target || items.length === 0) return;
     setError(null);
+    setBulkPending(true);
+    let deleted = 0;
+    const errors: string[] = [];
     try {
-      if (target.type === "folder") await delFolder.mutateAsync(target.id);
-      else await delImage.mutateAsync(target.id);
+      for (const item of items) {
+        try {
+          if (item.type === "folder") await delFolder.mutateAsync(item.id);
+          else await delImage.mutateAsync(item.id);
+          deleted++;
+        } catch (err) {
+          errors.push(`${item.name}: ${errMsg(err)}`);
+        }
+      }
+
+      if (errors.length > 0) {
+        setError(`Đã xóa ${deleted}/${items.length}. Lỗi: ${errors.join("; ")}`);
+        return;
+      }
+
+      onDeleted?.();
       onClose();
-    } catch (err) {
-      setError(errMsg(err));
+    } finally {
+      setBulkPending(false);
     }
   }
 
   return (
-    <Dialog open={open} onClose={onClose} title={target?.type === "folder" ? "Xóa thư mục" : "Xóa ảnh"}>
+    <Dialog open={open} onClose={onClose} title={multi ? "Xóa mục đã chọn" : items[0]?.type === "folder" ? "Xóa thư mục" : "Xóa ảnh"}>
       <div className="flex flex-col gap-4">
         <p className="text-sm text-zinc-700">
-          Xóa <span className="font-medium">{target?.name}</span>
-          {target?.type === "folder" ? " và toàn bộ nội dung bên trong" : ""}?
+          {multi ? (
+            <>
+              Xóa <span className="font-medium">{items.length} mục đã chọn</span>
+              {folderCount > 0 && imageCount > 0 ? ` (${folderCount} thư mục, ${imageCount} ảnh)` : folderCount > 0 ? ` (${folderCount} thư mục)` : ` (${imageCount} ảnh)`}?
+            </>
+          ) : (
+            <>
+              Xóa <span className="font-medium">{items[0]?.name}</span>
+              {items[0]?.type === "folder" ? " và toàn bộ nội dung bên trong" : ""}?
+            </>
+          )}
         </p>
         <div className="flex items-start gap-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
           <Warning size={18} weight="fill" className="mt-0.5 shrink-0 text-amber-500" />

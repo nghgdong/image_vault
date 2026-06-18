@@ -19,10 +19,8 @@ import { FolderTree } from "./FolderTree";
 import { Topbar } from "./Topbar";
 import { Lightbox } from "./Lightbox";
 import { ContextMenu, type MenuItem } from "./ContextMenu";
-import { NewFolderDialog, RenameDialog, DeleteConfirmDialog } from "./dialogs";
+import { NewFolderDialog, RenameDialog, DeleteConfirmDialog, type DeleteTarget, type RenameTarget } from "./dialogs";
 import { UploadQueue, type QueueItem } from "./UploadQueue";
-
-type RenameDeleteTarget = { type: "folder" | "image"; id: string; name: string } | null;
 
 export function Explorer() {
   const hydrate = useAuthStore((s) => s.hydrate);
@@ -38,8 +36,8 @@ export function Explorer() {
   const [lightbox, setLightbox] = useState<{ images: ImageDto[]; index: number } | null>(null);
   const [ctx, setCtx] = useState<{ x: number; y: number; target: CtxTarget } | null>(null);
   const [newFolderOpen, setNewFolderOpen] = useState(false);
-  const [renameTarget, setRenameTarget] = useState<RenameDeleteTarget>(null);
-  const [deleteTarget, setDeleteTarget] = useState<RenameDeleteTarget>(null);
+  const [renameTarget, setRenameTarget] = useState<RenameTarget>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -151,7 +149,7 @@ export function Explorer() {
       ];
       if (isAdmin) {
         items.push({ label: "Đổi tên", icon: PencilSimple, onClick: () => setRenameTarget({ type: "image", id: img.id, name: img.name }) });
-        items.push({ label: "Xóa", icon: Trash, danger: true, onClick: () => setDeleteTarget({ type: "image", id: img.id, name: img.name }) });
+        items.push({ label: "Xóa", icon: Trash, danger: true, onClick: () => setDeleteTarget({ items: [{ type: "image", id: img.id, name: img.name }] }) });
       }
       return items;
     }
@@ -161,7 +159,7 @@ export function Explorer() {
       ];
       if (isAdmin) {
         items.push({ label: "Đổi tên", icon: PencilSimple, onClick: () => setRenameTarget({ type: "folder", id: target.id, name: target.name }) });
-        items.push({ label: "Xóa", icon: Trash, danger: true, onClick: () => setDeleteTarget({ type: "folder", id: target.id, name: target.name }) });
+        items.push({ label: "Xóa", icon: Trash, danger: true, onClick: () => setDeleteTarget({ items: [{ type: "folder", id: target.id, name: target.name }] }) });
       }
       return items;
     }
@@ -213,6 +211,7 @@ export function Explorer() {
               isAdmin={isAdmin}
               onActivateImage={(images, index) => setLightbox({ images, index })}
               onContextMenu={openContextMenu}
+              onDeleteSelection={(items) => setDeleteTarget({ items })}
               onFilesDropped={enqueueAndUpload}
             />
           </main>
@@ -246,7 +245,12 @@ export function Explorer() {
 
       <NewFolderDialog open={newFolderOpen} onClose={() => setNewFolderOpen(false)} parentId={current} />
       <RenameDialog open={!!renameTarget} onClose={() => setRenameTarget(null)} target={renameTarget} />
-      <DeleteConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} target={deleteTarget} />
+      <DeleteConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        target={deleteTarget}
+        onDeleted={() => useUiStore.getState().clearSelection()}
+      />
 
       <UploadQueue items={queue} onClose={() => setQueue([])} onRetry={retry} />
 
